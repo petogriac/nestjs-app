@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,87 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Person {
+  id             Int             @id @default(autoincrement())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  first_name     String
+  last_name      String
+  note           String?
+  job_role       JobRole
+  not_billable   Boolean
+  level          Int
+  status         Status
+  tags           TagsOnPersons[]
+  allocation     Allocation[]
+  availability   Availability[]  @relation("person")
+  availabilityPM Availability[]  @relation("pm_person")
+
+  @@unique([first_name, last_name])
+  @@map("person")
+}
+
+model Availability {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  percentage  Int
+  date_from   DateTime
+  personId    Int
+  pm_personId Int
+  person      Person   @relation("person", fields: [personId], references: [id])
+  pm_person   Person   @relation("pm_person", fields: [pm_personId], references: [id])
+
+  @@map("availability")
+}
+
+model Project {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  name        String
+  description String?
+  note        String?
+  color       String
+  status      Status
+  allocation  Allocation[]
+
+  @@map("project")
+}
+
+model Allocation {
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  percentage Int
+  date_from  DateTime
+  date_to    DateTime?
+  note       String?
+  personId   Int
+  projectId  Int
+  person     Person    @relation(fields: [personId], references: [id])
+  project    Project   @relation(fields: [projectId], references: [id])
+
+  @@map("allocation")
+}
+
+model Tag {
+  id      Int             @id @default(autoincrement())
+  value   String          @unique
+  persons TagsOnPersons[]
+
+  @@map("tag")
+}
+
+model TagsOnPersons {
+  personId Int
+  tagId    Int
+  person   Person @relation(fields: [personId], references: [id])
+  tag      Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([personId, tagId])
 }
 
 enum JobRole {
@@ -18,97 +96,4 @@ enum JobRole {
 enum Status {
   ACTIVE
   INACTIVE
-}
-
-model Person {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  status Status
-
-  first_name String
-  last_name  String
-  note       String?
-
-  job_role     JobRole
-  not_billable Boolean
-  level        Int
-
-  tags           TagsOnPersons[]
-  availability   Availability[]  @relation("person")
-  availabilityPM Availability[]  @relation("pm_person")
-  allocation     Allocation[]
-
-  @@map(name: "person")
-}
-
-model Availability {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  percentage Int
-  date_from  DateTime
-
-  personId Int
-  person   Person @relation("person", fields: [personId], references: [id])
-
-  pm_personId Int
-  pm_person   Person @relation("pm_person", fields: [pm_personId], references: [id])
-
-  @@map(name: "availability")
-}
-
-model Project {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  status      String
-  name        String
-  description String?
-  note        String?
-  color       String
-
-  allocation Allocation[]
-
-  @@map(name: "project")
-}
-
-model Allocation {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  percentage Int
-  date_from  DateTime
-  date_to    DateTime?
-  note       String?
-
-  personId Int
-  person   Person @relation(fields: [personId], references: [id])
-
-  projectId Int
-  project   Project @relation(fields: [projectId], references: [id])
-
-  @@map(name: "allocation")
-}
-
-model Tag {
-  id Int @id @default(autoincrement())
-
-  value   String
-  persons TagsOnPersons[]
-
-  @@map(name: "tag")
-}
-
-model TagsOnPersons {
-  person   Person @relation(fields: [personId], references: [id])
-  personId Int
-  tag      Tag    @relation(fields: [tagId], references: [id])
-  tagId    Int
-
-  @@id([personId, tagId])
 }

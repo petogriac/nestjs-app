@@ -1,18 +1,21 @@
 -- CreateEnum
 CREATE TYPE "JobRole" AS ENUM ('FRONTEND_DEVELOPER', 'BACKEND_DEVELOPER');
 
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('ACTIVE', 'INACTIVE');
+
 -- CreateTable
 CREATE TABLE "person" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "status" TEXT NOT NULL,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
     "note" TEXT,
     "job_role" "JobRole" NOT NULL,
     "not_billable" BOOLEAN NOT NULL,
     "level" INTEGER NOT NULL,
+    "status" "Status" NOT NULL,
 
     CONSTRAINT "person_pkey" PRIMARY KEY ("id")
 );
@@ -35,11 +38,11 @@ CREATE TABLE "project" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "status" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "note" TEXT,
     "color" TEXT NOT NULL,
+    "status" "Status" NOT NULL,
 
     CONSTRAINT "project_pkey" PRIMARY KEY ("id")
 );
@@ -74,6 +77,12 @@ CREATE TABLE "TagsOnPersons" (
 
     CONSTRAINT "TagsOnPersons_pkey" PRIMARY KEY ("personId","tagId")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "person_first_name_last_name_key" ON "person"("first_name", "last_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "tag_value_key" ON "tag"("value");
 
 -- AddForeignKey
 ALTER TABLE "availability" ADD CONSTRAINT "availability_personId_fkey" FOREIGN KEY ("personId") REFERENCES "person"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
