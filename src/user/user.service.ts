@@ -33,7 +33,7 @@ export class UserService {
             status: Status.ACTIVE,
           },
         ],
-        skipDuplicates: true
+        skipDuplicates: true,
       }),
 
       this.prisma.tag.createMany({
@@ -73,7 +73,7 @@ export class UserService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} user`;
+    return this.prisma.person.findUnique({ where: { id } });
   }
 
   async findByTag(tag: string): Promise<Person[]> {
